@@ -122,6 +122,14 @@ class MongoObserver(RunObserver):
             if self.run_entry is not None:
                 raise RuntimeError("Cannot overwrite more than once!")
             # TODO sanity checks
+            for overwrite_source, ex_source in zip(self.overwrite['experiment']['sources'], ex_info['sources']):
+                overwrite_source = tuple(overwrite_source)
+                if type(overwrite_source[1]) != type(ex_source[1]):
+                    # finde source in db by objectID
+                    gridFS_file = self.fs.get(overwrite_source[1])
+                    overwrite_source = (os.path.basename(gridFS_file.filename), gridFS_file.md5)
+                if overwrite_source != ex_source:
+                    raise RuntimeError("Sources don't match")
             self.run_entry = self.overwrite
 
         self.run_entry.update({
